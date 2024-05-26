@@ -11,8 +11,6 @@ This repository contains configurations and instructions to set up an ELK (Elast
   - [Deploy Sample Application](#deploy-sample-application)
   - [Configure and Deploy Filebeat](#configure-and-deploy-filebeat)
 - [Accessing Kibana](#accessing-kibana)
-- [Contributing](#contributing)
-- [License](#license)
 
 ## Introduction
 
