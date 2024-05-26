@@ -126,7 +126,7 @@ The ELK stack consists of Elasticsearch, Kibana, Logstash, and Filebeat. It is u
 To access Kibana, get the LoadBalancer IP:
 
 ```bash
-kubectl get svc kibana-kibana
+kubectl get svc kibana-kibana --namespace logging
 ```
 
 Kibana username will be elastic and password you can access using below:
