@@ -131,7 +131,7 @@ kubectl get svc kibana-kibana --namespace logging
 You can also test it using port-forward
 
 ```bash
-kubectl port-forward svc kibana-kibana --namespace logging 5601:5601
+kubectl port-forward svc/kibana-kibana --namespace logging 5601:5601
 ```
 
 Kibana username will be elastic and password you can access using below:
