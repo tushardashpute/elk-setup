@@ -48,44 +48,19 @@ The ELK stack consists of Elasticsearch, Kibana, Logstash, and Filebeat. It is u
 3. **Deploy Elasticsearch**
 
     ```bash
-    helm install elasticsearch elastic/elasticsearch --set replicas=1
+    helm install elasticsearch elastic/elasticsearch -f elsticsearch.yaml  --namespace logging --create-namespace
     ```
 
 4. **Deploy Logstash**
 
-    Create a `logstash-configmap.yaml`:
-
-    ```yaml
-    apiVersion: v1
-    kind: ConfigMap
-    metadata:
-      name: logstash-config
-    data:
-      logstash.conf: |
-        input {
-          beats {
-            port => 5044
-          }
-        }
-        output {
-          elasticsearch {
-            hosts => ["http://elasticsearch-master:9200"]
-            index => "%{[@metadata][beat]}-%{[@metadata][version]}-%{+YYYY.MM.dd}"
-          }
-        }
-    ```
-
-    Apply the ConfigMap and deploy Logstash:
-
     ```bash
-    kubectl apply -f logstash-configmap.yaml
-    helm install logstash elastic/logstash --set logstashConfig.configMap=logstash-config
+    helm install logstash elastic/logstash -f logstash.yaml --namespace logging
     ```
 
 5. **Deploy Kibana**
 
     ```bash
-    helm install kibana elastic/kibana --set service.type=LoadBalancer
+    helm install kibana elastic/kibana --set service.type=LoadBalancer -f kibana.yaml --namespace logging
     ```
 
 ### Deploy Sample Application
@@ -142,85 +117,10 @@ The ELK stack consists of Elasticsearch, Kibana, Logstash, and Filebeat. It is u
 
 ### Configure and Deploy Filebeat
 
-1. **Create Filebeat ConfigMap**
-
-    Create a `filebeat-configmap.yaml`:
-
-    ```yaml
-    apiVersion: v1
-    kind: ConfigMap
-    metadata:
-      name: filebeat-config
-      namespace: default
-    data:
-      filebeat.yml: |
-        filebeat.inputs:
-        - type: container
-          paths:
-            - /var/log/containers/*.log
-
-        output.logstash:
-          hosts: ["logstash:5044"]
-    ```
-
-    Apply the ConfigMap:
+1. **Deploy Filebeat DaemonSet**
 
     ```bash
-    kubectl apply -f filebeat-configmap.yaml
-    ```
-
-2. **Deploy Filebeat DaemonSet**
-
-    Create a `filebeat-daemonset.yaml`:
-
-    ```yaml
-    apiVersion: apps/v1
-    kind: DaemonSet
-    metadata:
-      name: filebeat
-      namespace: default
-      labels:
-        k8s-app: filebeat
-    spec:
-      selector:
-        matchLabels:
-          k8s-app: filebeat
-      template:
-        metadata:
-          labels:
-            k8s-app: filebeat
-        spec:
-          containers:
-          - name: filebeat
-            image: docker.elastic.co/beats/filebeat:7.12.1
-            args: [
-              "-c", "/etc/filebeat.yml",
-              "-e",
-            ]
-            env:
-            - name: ELASTICSEARCH_HOST
-              value: "elasticsearch-master"
-            - name: ELASTICSEARCH_PORT
-              value: "9200"
-            volumeMounts:
-            - name: config
-              mountPath: /etc/filebeat.yml
-              subPath: filebeat.yml
-            - name: varlog
-              mountPath: /var/log
-          volumes:
-          - name: config
-            configMap:
-              name: filebeat-config
-          - name: varlog
-            hostPath:
-              path: /var/log
-    ```
-
-    Deploy the Filebeat DaemonSet:
-
-    ```bash
-    kubectl apply -f filebeat-daemonset.yaml
+    helm install elk-filebeat elastic/filebeat -f filebeat.yaml --namespace logging
     ```
 
 ## Accessing Kibana
@@ -233,14 +133,3 @@ kubectl get svc kibana-kibana
 
 Open Kibana in your browser and configure the index pattern to visualize the logs.
 
-## Contributing
-
-Contributions are welcome! Please fork this repository and submit a pull request.
-
-## License
-
-This project is licensed under the MIT License.
-
----
-
-This README provides a comprehensive guide to setting up and testing the ELK stack on Kubernetes with a sample application to generate logs. It covers all necessary steps, from prerequisites to accessing Kibana for log visualization.
