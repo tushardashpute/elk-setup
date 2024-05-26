@@ -129,5 +129,11 @@ To access Kibana, get the LoadBalancer IP:
 kubectl get svc kibana-kibana
 ```
 
+Kibana username will be elastic and password you can access using below:
+
+```bash
+kubectl get secrets --namespace=logging elasticsearch-master-credentials -ojsonpath='{.data.password}' | base64 -d
+```
+
 Open Kibana in your browser and configure the index pattern to visualize the logs.
 
